@@ -40,7 +40,7 @@ the official catalog using a 24-hour, magnitude 4.5, limit 3 query.
 
 ```text
 TypeScript typecheck: passed
-Tests: 10 passed
+Tests: 18 passed
 Manifest schema validation: passed
 Production build: passed
 npm audit: 0 vulnerabilities

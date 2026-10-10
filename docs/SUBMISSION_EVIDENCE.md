@@ -22,7 +22,7 @@ keys, seed phrases, login codes, bearer tokens, or complete payment signatures.
 ## Automated verification
 
 - CI runs: https://github.com/kaylia-builder/quakepay-x402/actions
-- `npm run check`: passed (12 tests)
+- `npm run check`: passed (18 tests)
 - Manifest validation: passed against the official Kite x402 schema
 - All paid routes advertise valid x402 Bazaar discovery metadata with request
   schemas, response examples, service identity, and Kite capability tags.

@@ -22,7 +22,7 @@ different HTTPS deployment, facilitator, or output path.
 
 ## Latest read-only result
 
-Run at `2026-09-30T16:13:35.783Z` (`2026-10-01` in Hong Kong):
+Run at `2026-10-09T10:05:04.764Z` (`2026-10-09` in Hong Kong):
 
 | Check | Result | Evidence |
 |---|---|---|

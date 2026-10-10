@@ -166,6 +166,18 @@ After deployment, verify the live health endpoint and all unpaid challenges:
 BASE_URL=https://your-service.onrender.com npm run verify:deployment
 ```
 
+The verifier defaults to the testnet profile. For a mainnet candidate, verify
+the deployed network, USDC.e asset, receiver, price, and all three unpaid
+challenges explicitly before attempting a paid canary:
+
+```bash
+BASE_URL=https://your-service.example \
+EXPECTED_NETWORK=mainnet \
+EXPECTED_PRICE_USD=0.01 \
+EXPECTED_PAY_TO=0xYourReceiver \
+npm run verify:deployment
+```
+
 Start on Kite testnet (`eip155:2368`, PYUSD). After deployment:
 
 1. Confirm `pay_to` in `service.yaml` matches the dashboard-connected service wallet.
@@ -174,6 +186,9 @@ Start on Kite testnet (`eip155:2368`, PYUSD). After deployment:
 4. Save the 402 response, paid response, transaction hash, CI link, and schema
    validation output in [`docs/SUBMISSION_EVIDENCE.md`](docs/SUBMISSION_EVIDENCE.md).
 5. Move to mainnet only after testnet evidence is complete.
+
+The gated development sequence and mainnet exit criteria are tracked in
+[`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Data source and attribution
 

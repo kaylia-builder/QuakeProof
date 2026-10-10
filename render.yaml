@@ -10,7 +10,7 @@ services:
       - key: KITE_NETWORK
         value: testnet
       - key: PRICE_USD
-        value: "0.001"
+        value: "0.01"
       - key: FACILITATOR_URL
         value: https://facilitator.pieverse.io/v2
       - key: UPSTREAM_URL
