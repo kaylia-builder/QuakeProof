@@ -21,6 +21,8 @@ type Settlement = {
   transaction?: string;
   network?: string;
   payer?: string;
+  errorReason?: string;
+  errorMessage?: string;
 };
 
 type Earthquake = { id?: string };
@@ -51,16 +53,20 @@ async function paidJson<T>(
 ): Promise<{ body: T; settlement: Settlement }> {
   const response = await paidFetch(url, { method: "GET" });
   const raw = await response.text();
+  const paymentResponse = response.headers.get("payment-response");
+  const settlement = paymentResponse
+    ? decodePaymentResponseHeader(paymentResponse) as Settlement
+    : undefined;
+
   if (!response.ok) {
-    throw new Error(`paid request failed (${response.status}): ${raw.slice(0, 500)}`);
+    const reason = settlement?.errorReason ?? settlement?.errorMessage ?? raw.slice(0, 500);
+    throw new Error(`paid request failed (${response.status}): ${reason}`);
   }
 
-  const paymentResponse = response.headers.get("payment-response");
-  if (!paymentResponse) {
+  if (!settlement) {
     throw new Error("paid response is missing PAYMENT-RESPONSE settlement evidence");
   }
 
-  const settlement = decodePaymentResponseHeader(paymentResponse) as Settlement;
   if (settlement.success !== true || settlement.network !== KITE_TESTNET) {
     throw new Error(`unexpected settlement: ${JSON.stringify(settlement)}`);
   }
