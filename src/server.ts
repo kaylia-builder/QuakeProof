@@ -17,7 +17,7 @@ if (!process.env.VERCEL) {
   app.listen(port, () => {
     console.log(
       `quakeproof listening on :${port} ` +
-        `(network ${config.chain.network}, ${config.price} per call to ${config.payTo})`
+        `(network ${config.payment.network}, ${config.price} per call to ${config.payTo})`
     );
   });
 }

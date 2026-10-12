@@ -1,9 +1,9 @@
-export const EXPECTED_KITE_PAYMENT = {
+export const EXPECTED_PAYMENT = {
   x402Version: 2,
   scheme: "exact",
-  network: "eip155:2368",
-  asset: "0x8E04D099b1a8Dd20E6caD4b2Ab2B405B98242ec9",
-  amount: "10000000000000000"
+  network: "eip155:84532",
+  asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  amount: "10000"
 } as const;
 
 type JsonRecord = Record<string, unknown>;
@@ -66,14 +66,14 @@ export function analyzeDiagnostics(input: DiagnosticInput): {
   const paymentRequired = record(input.paymentRequired);
   const accepts = records(paymentRequired?.accepts);
   const requirement = accepts.find(item =>
-    item.scheme === EXPECTED_KITE_PAYMENT.scheme &&
-    item.network === EXPECTED_KITE_PAYMENT.network
+    item.scheme === EXPECTED_PAYMENT.scheme &&
+    item.network === EXPECTED_PAYMENT.network
   );
   const kinds = supportedKinds(input.supported);
   const facilitatorKind = kinds.find(item =>
-    item.scheme === EXPECTED_KITE_PAYMENT.scheme &&
-    item.network === EXPECTED_KITE_PAYMENT.network &&
-    (item.x402Version === undefined || item.x402Version === EXPECTED_KITE_PAYMENT.x402Version)
+    item.scheme === EXPECTED_PAYMENT.scheme &&
+    item.network === EXPECTED_PAYMENT.network &&
+    (item.x402Version === undefined || item.x402Version === EXPECTED_PAYMENT.x402Version)
   );
 
   const checks: DiagnosticCheck[] = [
@@ -90,24 +90,24 @@ export function analyzeDiagnostics(input: DiagnosticInput): {
         : `paid endpoint returned HTTP ${input.challengeStatus} without a decodable challenge`
     },
     {
-      name: "kite_payment_terms",
+      name: "payment_terms",
       status:
         requirement &&
-        paymentRequired?.x402Version === EXPECTED_KITE_PAYMENT.x402Version &&
-        string(requirement.asset)?.toLowerCase() === EXPECTED_KITE_PAYMENT.asset.toLowerCase() &&
-        string(requirement.amount) === EXPECTED_KITE_PAYMENT.amount
+        paymentRequired?.x402Version === EXPECTED_PAYMENT.x402Version &&
+        string(requirement.asset)?.toLowerCase() === EXPECTED_PAYMENT.asset.toLowerCase() &&
+        string(requirement.amount) === EXPECTED_PAYMENT.amount
           ? "pass"
           : "fail",
       detail: requirement
         ? `challenge advertises ${String(requirement.amount)} units of ${String(requirement.asset)} on ${String(requirement.network)}`
-        : "challenge does not advertise the expected Kite exact-payment requirement"
+        : "challenge does not advertise the expected Base Sepolia USDC requirement"
     },
     {
       name: "facilitator_capability",
       status: input.supportedStatus === 200 && facilitatorKind ? "pass" : "fail",
       detail: facilitatorKind
-        ? "facilitator advertises exact payments on eip155:2368"
-        : `facilitator returned HTTP ${input.supportedStatus} without the expected Kite capability`
+        ? "facilitator advertises exact payments on eip155:84532"
+        : `facilitator returned HTTP ${input.supportedStatus} without the expected EVM capability`
     },
     {
       name: "settlement_compatibility",

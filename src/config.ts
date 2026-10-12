@@ -1,8 +1,12 @@
-import { FACILITATOR_URL, kiteChainByName, type KiteChain } from "./kite.js";
+import {
+  BASE_SEPOLIA_USDC,
+  DEFAULT_FACILITATOR_URL,
+  type EvmPaymentConfig
+} from "./payment.js";
 
 export interface AppConfig {
   payTo: string;
-  chain: KiteChain;
+  payment: EvmPaymentConfig;
   price: string;
   facilitatorUrl: string;
   upstreamUrl: URL;
@@ -19,6 +23,53 @@ function positiveInteger(value: string, name: string): number {
     throw new Error(`${name} must be a positive integer`);
   }
   return parsed;
+}
+
+function assetDecimals(value: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > 255) {
+    throw new Error("X402_ASSET_DECIMALS must be an integer between 0 and 255");
+  }
+  return parsed;
+}
+
+function paymentConfig(): EvmPaymentConfig {
+  const keys = [
+    "X402_NETWORK",
+    "X402_ASSET_ADDRESS",
+    "X402_ASSET_SYMBOL",
+    "X402_ASSET_DECIMALS",
+    "X402_EIP712_NAME",
+    "X402_EIP712_VERSION"
+  ] as const;
+  const values = Object.fromEntries(
+    keys.map(key => [key, (process.env[key] ?? "").trim()])
+  ) as Record<(typeof keys)[number], string>;
+  const supplied = keys.filter(key => values[key] !== "");
+  if (supplied.length === 0) return { ...BASE_SEPOLIA_USDC };
+  if (supplied.length !== keys.length) {
+    const missing = keys.filter(key => values[key] === "");
+    throw new Error(`custom x402 asset configuration is missing: ${missing.join(", ")}`);
+  }
+
+  const network = values.X402_NETWORK;
+  if (!/^eip155:[1-9][0-9]*$/.test(network)) {
+    throw new Error("X402_NETWORK must be a CAIP-2 EVM identifier such as eip155:84532");
+  }
+
+  const assetAddress = values.X402_ASSET_ADDRESS;
+  if (!/^0x[0-9a-fA-F]{40}$/.test(assetAddress)) {
+    throw new Error("X402_ASSET_ADDRESS must be a 20-byte EVM address");
+  }
+
+  return {
+    network: network as EvmPaymentConfig["network"],
+    assetAddress: assetAddress as `0x${string}`,
+    assetSymbol: values.X402_ASSET_SYMBOL,
+    assetDecimals: assetDecimals(values.X402_ASSET_DECIMALS),
+    eip712Name: values.X402_EIP712_NAME,
+    eip712Version: values.X402_EIP712_VERSION
+  };
 }
 
 export function loadConfig(): AppConfig {
@@ -41,9 +92,9 @@ export function loadConfig(): AppConfig {
 
   return {
     payTo,
-    chain: kiteChainByName(env("KITE_NETWORK", "testnet")),
+    payment: paymentConfig(),
     price: `$${priceRaw}`,
-    facilitatorUrl: env("FACILITATOR_URL", FACILITATOR_URL),
+    facilitatorUrl: env("FACILITATOR_URL", DEFAULT_FACILITATOR_URL),
     upstreamUrl,
     upstreamTimeoutMs: positiveInteger(env("UPSTREAM_TIMEOUT_MS", "8000"), "UPSTREAM_TIMEOUT_MS"),
     serviceDescription: env(

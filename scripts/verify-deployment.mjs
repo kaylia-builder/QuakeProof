@@ -1,19 +1,19 @@
 const profiles = {
-  testnet: {
-    network: "eip155:2368",
-    asset: "0x8E04D099b1a8Dd20E6caD4b2Ab2B405B98242ec9",
-    decimals: 18
+  "base-sepolia": {
+    network: "eip155:84532",
+    asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    decimals: 6
   },
-  mainnet: {
-    network: "eip155:2366",
-    asset: "0x7aB6f3ed87C42eF0aDb67Ed95090f8bF5240149e",
+  base: {
+    network: "eip155:8453",
+    asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     decimals: 6
   }
 };
 
-const profileName = (process.env.EXPECTED_NETWORK ?? "testnet").trim();
+const profileName = (process.env.EXPECTED_NETWORK ?? "base-sepolia").trim();
 const profile = profiles[profileName];
-if (!profile) throw new Error("EXPECTED_NETWORK must be testnet or mainnet");
+if (!profile) throw new Error("EXPECTED_NETWORK must be base-sepolia or base");
 
 const price = (process.env.EXPECTED_PRICE_USD ?? "0.01").trim();
 if (!/^\d+(\.\d{1,6})?$/.test(price) || Number(price) <= 0) {

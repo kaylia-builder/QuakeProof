@@ -7,9 +7,8 @@ import {
   analyzeDiagnostics,
   sanitizeForReport
 } from "../src/diagnostics.js";
-import { FACILITATOR_URL } from "../src/kite.js";
+import { DEFAULT_FACILITATOR_URL } from "../src/payment.js";
 
-const DEFAULT_BASE_URL = "https://quakepay-x402.vercel.app";
 
 function httpsUrl(value: string, name: string): string {
   const url = new URL(value.replace(/\/$/, ""));
@@ -39,11 +38,18 @@ async function request(url: string): Promise<{
 }
 
 async function main() {
+  const configuredService = process.env.QUAKEPROOF_BASE_URL?.trim();
+  if (!configuredService) {
+    throw new Error("QUAKEPROOF_BASE_URL is required for facilitator diagnostics");
+  }
   const service = httpsUrl(
-    process.env.QUAKEPROOF_BASE_URL ?? process.env.QUAKEPAY_BASE_URL ?? DEFAULT_BASE_URL,
+    configuredService,
     "QUAKEPROOF_BASE_URL"
   );
-  const facilitator = httpsUrl(process.env.FACILITATOR_URL ?? FACILITATOR_URL, "FACILITATOR_URL");
+  const facilitator = httpsUrl(
+    process.env.FACILITATOR_URL ?? DEFAULT_FACILITATOR_URL,
+    "FACILITATOR_URL"
+  );
   const challengeUrl = `${service}/v1/earthquakes/recent?hours=24&minMagnitude=4.5&limit=3`;
 
   const [health, challenge, supported] = await Promise.all([

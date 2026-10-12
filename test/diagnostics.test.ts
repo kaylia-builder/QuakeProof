@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  EXPECTED_KITE_PAYMENT,
+  EXPECTED_PAYMENT,
   analyzeDiagnostics,
   sanitizeForReport
 } from "../src/diagnostics.js";
@@ -10,9 +10,9 @@ const challenge = {
   x402Version: 2,
   accepts: [{
     scheme: "exact",
-    network: EXPECTED_KITE_PAYMENT.network,
-    asset: EXPECTED_KITE_PAYMENT.asset,
-    amount: EXPECTED_KITE_PAYMENT.amount
+    network: EXPECTED_PAYMENT.network,
+    asset: EXPECTED_PAYMENT.asset,
+    amount: EXPECTED_PAYMENT.amount
   }]
 };
 
@@ -24,7 +24,7 @@ describe("facilitator diagnostics", () => {
       paymentRequired: challenge,
       supportedStatus: 200,
       supported: {
-        kinds: [{ x402Version: 2, scheme: "exact", network: "eip155:2368" }]
+        kinds: [{ x402Version: 2, scheme: "exact", network: "eip155:84532" }]
       }
     });
 
@@ -35,7 +35,7 @@ describe("facilitator diagnostics", () => {
     });
   });
 
-  it("fails when the facilitator does not advertise Kite support", () => {
+  it("fails when the facilitator does not advertise Base Sepolia support", () => {
     const result = analyzeDiagnostics({
       healthStatus: 200,
       challengeStatus: 402,
@@ -54,10 +54,10 @@ describe("facilitator diagnostics", () => {
   it("redacts signing material recursively", () => {
     expect(sanitizeForReport({
       signature: "0xsecret",
-      nested: { authorization: { from: "0x123" }, asset: EXPECTED_KITE_PAYMENT.asset }
+      nested: { authorization: { from: "0x123" }, asset: EXPECTED_PAYMENT.asset }
     })).toEqual({
       signature: "[REDACTED]",
-      nested: { authorization: "[REDACTED]", asset: EXPECTED_KITE_PAYMENT.asset }
+      nested: { authorization: "[REDACTED]", asset: EXPECTED_PAYMENT.asset }
     });
   });
 });

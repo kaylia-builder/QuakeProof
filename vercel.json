@@ -8,9 +8,14 @@
   },
   "env": {
     "PAY_TO": "0x1617Ae836b163d055DFa0655D9100f35864953f0",
-    "KITE_NETWORK": "testnet",
+    "X402_NETWORK": "eip155:84532",
+    "X402_ASSET_ADDRESS": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "X402_ASSET_SYMBOL": "USDC",
+    "X402_ASSET_DECIMALS": "6",
+    "X402_EIP712_NAME": "USDC",
+    "X402_EIP712_VERSION": "2",
     "PRICE_USD": "0.01",
-    "FACILITATOR_URL": "https://facilitator.pieverse.io/v2",
+    "FACILITATOR_URL": "https://x402.org/facilitator",
     "UPSTREAM_URL": "https://earthquake.usgs.gov/fdsnws/event/1/",
     "UPSTREAM_TIMEOUT_MS": "8000",
     "SERVICE_DESCRIPTION": "Agent-ready earthquake intelligence from the USGS catalog"

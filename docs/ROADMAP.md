@@ -1,70 +1,42 @@
-# QuakeProof development roadmap
+# QuakeProof hackathon roadmap
 
-Progress is gate-based: a phase is complete only when its evidence exists. A
-working configuration or unsigned `402` challenge is not treated as proof of
-successful settlement.
+Progress is evidence-based: a phase is complete only when its test output or
+transaction hash is recorded.
 
-## Phase 1 — Public testnet service
+## Phase 0 — Baseline and identity
 
 Status: complete.
 
-- Public HTTPS deployment and health check
-- Three x402-protected earthquake endpoints
-- Bazaar discovery metadata and manifest validation
-- Automated tests for validation, normalization, risk scoring, and payment
-  lifecycle ordering
+- Pre-hackathon code preserved at tag `hackathon-baseline`
+- Project renamed from QuakePay to QuakeProof
+- Repository moved to `kaylia-builder/QuakeProof`
 
-## Phase 2 — Testnet payment closure
+## Phase 1 — Standard EVM x402 payment path
 
-Status: blocked on external payment-path compatibility and merchant admission.
+Status: implementation complete; deployment evidence pending.
 
-Exit criteria:
+- Base Sepolia (`eip155:84532`) and USDC defaults
+- Generic environment-driven EVM asset configuration
+- x402 Foundation facilitator default
+- Restricted paid smoke client with per-payment asset and amount limits
 
-- The service host is executable by the chosen payment client
-- `recent`, `nearby`, and `risk` each return a paid HTTP 2xx response
-- Every response includes successful settlement evidence and a transaction hash
-- The evidence file contains no private key, signature, or bearer credential
-- The known upstream-failure test proves that settlement is not attempted
+Exit criterion: all three endpoints return paid HTTP 2xx responses with Base
+Sepolia settlement transaction hashes.
 
-Use the repository's restricted direct client when a dedicated testnet wallet
-is available:
+## Phase 2 — Chainlink Functions verification
 
-```bash
-TESTNET_PAYER_PRIVATE_KEY=0x... npm run testnet:paid-smoke
-```
+Status: not started.
 
-Kite Passport currently rejects hosts outside its executable catalog before
-payment. Catalog admission is therefore an external dependency, not a service
-runtime failure.
+- Add a Functions consumer contract on Base Sepolia
+- Fetch and normalize USGS data through Chainlink Functions
+- Store event identifier, score, timestamp, and source digest onchain
+- Cross-check the onchain result against the TypeScript risk implementation
 
-## Phase 3 — Mainnet canary
-
-Status: not started. Do not enter until Phase 2 is complete.
-
-Exit criteria:
-
-- A separate mainnet deployment passes the mainnet verification profile
-- Receiver ownership and USDC.e asset details are independently confirmed
-- Per-request and total spend caps are set for the canary payer
-- One endpoint completes a low-value paid canary with a confirmed transaction
-- Logs, alerting, rollback, and configuration ownership are documented
-
-Read-only preflight:
-
-```bash
-BASE_URL=https://your-service.example \
-EXPECTED_NETWORK=mainnet \
-EXPECTED_PRICE_USD=0.01 \
-EXPECTED_PAY_TO=0xYourReceiver \
-npm run verify:deployment
-```
-
-## Phase 4 — Production operation
+## Phase 3 — Autonomous buyer and demo
 
 Status: planned.
 
-- Add request and settlement observability without logging payment signatures
-- Add abuse controls and rate limits
-- Define availability and upstream-failure alerts
-- Track paid-call success rate, settlement latency, and revenue
-- Review pricing after real usage data exists
+- Agent monitors verified reports and applies region/risk/budget policies
+- Agent skips irrelevant events and buys relevant reports through x402
+- Dashboard explains every decision and links both transaction types
+- README documents hackathon-only changes from `hackathon-baseline`

@@ -10,11 +10,11 @@ import { ExactEvmScheme } from "@x402/evm/exact/client";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { classifyPaymentFailure } from "../src/payment-evidence.js";
+import { BASE_SEPOLIA_USDC } from "../src/payment.js";
 
-const KITE_TESTNET = "eip155:2368";
-const PYUSD = "0x8E04D099b1a8Dd20E6caD4b2Ab2B405B98242ec9";
-const PRICE_ATOMIC = "10000000000000000";
-const DEFAULT_BASE_URL = "https://quakepay-x402.vercel.app";
+const PAYMENT_NETWORK = BASE_SEPOLIA_USDC.network;
+const PAYMENT_ASSET = BASE_SEPOLIA_USDC.assetAddress;
+const PRICE_ATOMIC = "10000";
 
 type Settlement = {
   success?: boolean;
@@ -32,18 +32,18 @@ function requiredPrivateKey(): `0x${string}` {
   const value = process.env.TESTNET_PAYER_PRIVATE_KEY?.trim();
   if (!value || !/^0x[0-9a-fA-F]{64}$/.test(value)) {
     throw new Error(
-      "TESTNET_PAYER_PRIVATE_KEY must be a 0x-prefixed private key for a dedicated Kite testnet wallet"
+      "TESTNET_PAYER_PRIVATE_KEY must be a 0x-prefixed private key for a dedicated Base Sepolia wallet"
     );
   }
   return value as `0x${string}`;
 }
 
 function baseUrl(): string {
-  const value = (
-    process.env.QUAKEPROOF_BASE_URL ??
-    process.env.QUAKEPAY_BASE_URL ??
-    DEFAULT_BASE_URL
-  ).replace(/\/$/, "");
+  const configured = process.env.QUAKEPROOF_BASE_URL?.trim();
+  if (!configured) {
+    throw new Error("QUAKEPROOF_BASE_URL is required for a paid smoke test");
+  }
+  const value = configured.replace(/\/$/, "");
   const url = new URL(value);
   if (url.protocol !== "https:") {
     throw new Error("QUAKEPROOF_BASE_URL must use HTTPS");
@@ -71,7 +71,7 @@ async function paidJson<T>(
     throw new Error("paid response is missing PAYMENT-RESPONSE settlement evidence");
   }
 
-  if (settlement.success !== true || settlement.network !== KITE_TESTNET) {
+  if (settlement.success !== true || settlement.network !== PAYMENT_NETWORK) {
     throw new Error(`unexpected settlement: ${JSON.stringify(settlement)}`);
   }
 
@@ -82,13 +82,13 @@ async function main() {
   const account = privateKeyToAccount(requiredPrivateKey());
   const origin = baseUrl();
   const client = new x402Client()
-    .register(KITE_TESTNET, new ExactEvmScheme(account))
+    .register(PAYMENT_NETWORK, new ExactEvmScheme(account))
     .setSpendControls({
       maxAmountPerPayment: "$0.01",
       allowedAssets: [
         {
-          network: KITE_TESTNET,
-          asset: PYUSD,
+          network: PAYMENT_NETWORK,
+          asset: PAYMENT_ASSET,
           maxAmountPerPayment: PRICE_ATOMIC
         }
       ]
@@ -120,8 +120,8 @@ async function main() {
       verifiedAt: new Date().toISOString(),
       status: "success",
       service: origin,
-      network: KITE_TESTNET,
-      asset: PYUSD,
+      network: PAYMENT_NETWORK,
+      asset: PAYMENT_ASSET,
       payer: account.address,
       calls
     };
@@ -133,8 +133,8 @@ async function main() {
       verifiedAt: new Date().toISOString(),
       status: "failed",
       service: origin,
-      network: KITE_TESTNET,
-      asset: PYUSD,
+      network: PAYMENT_NETWORK,
+      asset: PAYMENT_ASSET,
       payer: account.address,
       calls,
       failure: { endpoint: activeEndpoint, ...failure }

@@ -6,9 +6,8 @@ description: >-
   USGS catalog, normalized and screened for risk, paid per request over x402.
 maintainer:
   github: kaylia-builder
-status: testnet
-base_url: https://quakepay-x402.vercel.app
-network: eip155:2368
+status: draft
+network: eip155:84532
 pay_to: "0x1617Ae836b163d055DFa0655D9100f35864953f0"
 upstream:
   name: USGS Earthquake Catalog

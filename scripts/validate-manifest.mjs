@@ -15,4 +15,4 @@ if (!validate(manifest)) {
   console.error(ajv.errorsText(validate.errors, { separator: "\n" }));
   process.exit(1);
 }
-console.log("service.yaml is valid against the official Kite x402 schema");
+console.log("service.yaml is valid against the QuakeProof x402 schema");

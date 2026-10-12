@@ -1,7 +1,7 @@
 /*
- * x402 server registration follows the Apache-2.0-licensed Kite TypeScript
- * template. QuakeProof routing, validation, USGS integration, and responses are
- * project-specific modifications.
+ * The x402 server registration originated from an Apache-2.0 TypeScript
+ * template. QuakeProof's payment configuration, routing, validation, USGS
+ * integration, and responses are project-specific modifications.
  */
 import express, {
   type NextFunction,
@@ -19,7 +19,7 @@ import {
 } from "@x402/extensions/bazaar";
 import { loadConfig, type AppConfig } from "./config.js";
 import { assessRisk, normalizeFeature } from "./earthquakes.js";
-import { kiteMoneyParser } from "./kite.js";
+import { assetMoneyParser } from "./payment.js";
 import { createUsgsClient, UpstreamError, type UsgsClient } from "./usgs.js";
 
 export interface AppDependencies {
@@ -38,7 +38,7 @@ class RequestError extends Error {
   }
 }
 
-const serviceTags = ["earthquake", "usgs", "risk", "kite-ai", "live-data"];
+const serviceTags = ["earthquake", "usgs", "risk", "x402", "live-data"];
 
 function paidRoute(
   config: AppConfig,
@@ -49,7 +49,7 @@ function paidRoute(
     accepts: {
       scheme: "exact" as const,
       price: config.price,
-      network: config.chain.network,
+      network: config.payment.network,
       payTo: config.payTo,
       maxTimeoutSeconds: 60
     },
@@ -62,7 +62,7 @@ function paidRoute(
 }
 
 /**
- * Describe every paid route with x402 Bazaar metadata so Kite-compatible
+ * Describe every paid route with x402 Bazaar metadata so compatible
  * facilitators and agents can discover how to call the service from its 402.
  */
 export function createPaymentRoutes(config: AppConfig): RoutesConfig {
@@ -151,8 +151,8 @@ export function createPaymentRoutes(config: AppConfig): RoutesConfig {
 function createPaymentGuard(config: AppConfig): RequestHandler {
   const facilitator = new HTTPFacilitatorClient({ url: config.facilitatorUrl });
   const resourceServer = new x402ResourceServer(facilitator).register(
-    config.chain.network,
-    new ExactEvmScheme().registerMoneyParser(kiteMoneyParser(config.chain))
+    config.payment.network,
+    new ExactEvmScheme().registerMoneyParser(assetMoneyParser(config.payment))
   ).registerExtension(bazaarResourceServerExtension);
   return paymentMiddleware(createPaymentRoutes(config), resourceServer);
 }
@@ -210,8 +210,8 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
       ok: true,
       service: "quakeproof",
       description: config.serviceDescription,
-      network: config.chain.network,
-      asset: config.chain.assetSymbol,
+      network: config.payment.network,
+      asset: config.payment.assetSymbol,
       price: config.price,
       health: "/healthz",
       discovery: "x402 Bazaar metadata is included in each 402 challenge",
@@ -227,8 +227,8 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
     res.json({
       ok: true,
       service: "quakeproof",
-      network: config.chain.network,
-      asset: config.chain.assetSymbol,
+      network: config.payment.network,
+      asset: config.payment.assetSymbol,
       price: config.price,
       upstream: config.upstreamUrl.origin
     });

@@ -4,13 +4,13 @@ import { describe, expect, it } from "vitest";
 import { validateDiscoveryExtensionSpec } from "@x402/extensions/bazaar";
 import handleRequest, { createApp, createPaymentRoutes } from "../src/app.js";
 import type { AppConfig } from "../src/config.js";
-import { KITE_TESTNET } from "../src/kite.js";
+import { BASE_SEPOLIA_USDC } from "../src/payment.js";
 import { UpstreamError, type UsgsClient } from "../src/usgs.js";
 import type { UsgsFeature } from "../src/earthquakes.js";
 
 const config: AppConfig = {
   payTo: "0x1111111111111111111111111111111111111111",
-  chain: KITE_TESTNET,
+  payment: BASE_SEPOLIA_USDC,
   price: "$0.01",
   facilitatorUrl: "http://facilitator.invalid/v2",
   upstreamUrl: new URL("https://earthquake.usgs.gov/fdsnws/event/1/"),
@@ -67,7 +67,7 @@ describe("QuakeProof HTTP API", () => {
     expect(response.body).toMatchObject({
       ok: true,
       service: "quakeproof",
-      network: "eip155:2368",
+      network: "eip155:84532",
       discovery: "x402 Bazaar metadata is included in each 402 challenge",
       paidEndpoints: [
         "/v1/earthquakes/recent",
@@ -91,7 +91,7 @@ describe("QuakeProof HTTP API", () => {
 
     for (const route of Object.values(routes)) {
       expect(route.serviceName).toBe("quakeproof");
-      expect(route.tags).toContain("kite-ai");
+      expect(route.tags).toContain("x402");
       const bazaar = route.extensions?.bazaar;
       expect(bazaar).toBeDefined();
       expect(validateDiscoveryExtensionSpec(bazaar as Record<string, unknown>)).toEqual({ valid: true });
@@ -102,7 +102,7 @@ describe("QuakeProof HTTP API", () => {
     const app = createApp(config, { paymentGuard: paymentGuard([]), usgsClient: async () => ({ type: "FeatureCollection", features: [] }) });
     const response = await request(app).get("/healthz");
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObject({ ok: true, network: "eip155:2368", price: "$0.01" });
+    expect(response.body).toMatchObject({ ok: true, network: "eip155:84532", price: "$0.01" });
   });
 
   it("returns 402 before invoking the upstream when no payment is attached", async () => {

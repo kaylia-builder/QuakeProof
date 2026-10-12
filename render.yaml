@@ -7,12 +7,22 @@ services:
     envVars:
       - key: PAY_TO
         value: 0x1617Ae836b163d055DFa0655D9100f35864953f0
-      - key: KITE_NETWORK
-        value: testnet
+      - key: X402_NETWORK
+        value: eip155:84532
+      - key: X402_ASSET_ADDRESS
+        value: 0x036CbD53842c5426634e7929541eC2318f3dCF7e
+      - key: X402_ASSET_SYMBOL
+        value: USDC
+      - key: X402_ASSET_DECIMALS
+        value: "6"
+      - key: X402_EIP712_NAME
+        value: USDC
+      - key: X402_EIP712_VERSION
+        value: "2"
       - key: PRICE_USD
         value: "0.01"
       - key: FACILITATOR_URL
-        value: https://facilitator.pieverse.io/v2
+        value: https://x402.org/facilitator
       - key: UPSTREAM_URL
         value: https://earthquake.usgs.gov/fdsnws/event/1/
       - key: UPSTREAM_TIMEOUT_MS
