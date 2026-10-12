@@ -182,9 +182,6 @@ Start on Base Sepolia (`eip155:84532`, USDC). After deployment:
    validation output in [`docs/SUBMISSION_EVIDENCE.md`](docs/SUBMISSION_EVIDENCE.md).
 5. Move to Base mainnet only after testnet evidence is complete.
 
-The gated development sequence and mainnet exit criteria are tracked in
-[`docs/ROADMAP.md`](docs/ROADMAP.md).
-
 ## Data source and attribution
 
 Earthquake data is retrieved from the USGS Earthquake Catalog. Review the
