@@ -15,6 +15,9 @@ The automated suite covers:
 - `verify → upstream → settle` ordering
 - no settlement after upstream failure
 - validation, normalization, and deterministic risk scoring
+- deterministic Chainlink Functions source output
+- successful and failed Functions consumer fulfillment
+- parsing fresh onchain records into the risk endpoint
 
 After deploying, verify unsigned challenges:
 

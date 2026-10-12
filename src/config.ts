@@ -12,6 +12,11 @@ export interface AppConfig {
   upstreamUrl: URL;
   upstreamTimeoutMs: number;
   serviceDescription: string;
+  chainlink?: {
+    rpcUrl: string;
+    consumerAddress: `0x${string}`;
+    maxAgeSeconds: number;
+  };
 }
 
 const env = (key: string, fallback = ""): string =>
@@ -72,6 +77,30 @@ function paymentConfig(): EvmPaymentConfig {
   };
 }
 
+function chainlinkConfig(): AppConfig["chainlink"] {
+  const rpcUrl = env("CHAINLINK_RPC_URL");
+  const consumerAddress = env("CHAINLINK_CONSUMER_ADDRESS");
+  if (!rpcUrl && !consumerAddress) return undefined;
+  if (!rpcUrl || !consumerAddress) {
+    throw new Error("CHAINLINK_RPC_URL and CHAINLINK_CONSUMER_ADDRESS must be set together");
+  }
+  const parsedRpcUrl = new URL(rpcUrl);
+  if (parsedRpcUrl.protocol !== "https:") {
+    throw new Error("CHAINLINK_RPC_URL must use https");
+  }
+  if (!/^0x[0-9a-fA-F]{40}$/.test(consumerAddress)) {
+    throw new Error("CHAINLINK_CONSUMER_ADDRESS must be a 20-byte EVM address");
+  }
+  return {
+    rpcUrl: parsedRpcUrl.toString(),
+    consumerAddress: consumerAddress as `0x${string}`,
+    maxAgeSeconds: positiveInteger(
+      env("CHAINLINK_MAX_AGE_SECONDS", "86400"),
+      "CHAINLINK_MAX_AGE_SECONDS"
+    )
+  };
+}
+
 export function loadConfig(): AppConfig {
   const payTo = env("PAY_TO");
   if (!/^0x[0-9a-fA-F]{40}$/.test(payTo)) {
@@ -100,6 +129,7 @@ export function loadConfig(): AppConfig {
     serviceDescription: env(
       "SERVICE_DESCRIPTION",
       "Agent-ready earthquake intelligence from the USGS catalog"
-    )
+    ),
+    chainlink: chainlinkConfig()
   };
 }

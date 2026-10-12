@@ -1,4 +1,4 @@
-import type { UsgsCollection } from "./earthquakes.js";
+import type { UsgsCollection, UsgsFeature } from "./earthquakes.js";
 
 export class UpstreamError extends Error {
   constructor(
@@ -38,10 +38,13 @@ export function createUsgsClient(baseUrl: URL, timeoutMs: number): UsgsClient {
       const detail = (await response.text()).slice(0, 300);
       throw new UpstreamError(`USGS returned ${response.status}: ${detail}`, response.status);
     }
-    const data = (await response.json()) as UsgsCollection;
-    if (data.type !== "FeatureCollection" || !Array.isArray(data.features)) {
-      throw new UpstreamError("USGS returned an unexpected response shape");
+    const data = (await response.json()) as UsgsCollection | UsgsFeature;
+    if (data.type === "FeatureCollection" && Array.isArray(data.features)) {
+      return data;
     }
-    return data;
+    if (data.type === "Feature" && typeof data.id === "string") {
+      return { type: "FeatureCollection", features: [data] };
+    }
+    throw new UpstreamError("USGS returned an unexpected response shape");
   };
 }

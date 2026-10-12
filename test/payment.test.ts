@@ -46,4 +46,10 @@ describe("EVM payment configuration", () => {
     vi.stubEnv("X402_NETWORK", "eip155:1");
     expect(() => loadConfig()).toThrow(/custom x402 asset configuration is missing/);
   });
+
+  it("requires both Chainlink RPC and consumer address", () => {
+    vi.stubEnv("PAY_TO", "0x1111111111111111111111111111111111111111");
+    vi.stubEnv("CHAINLINK_RPC_URL", "https://sepolia.base.org");
+    expect(() => loadConfig()).toThrow(/must be set together/);
+  });
 });

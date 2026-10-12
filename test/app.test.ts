@@ -7,6 +7,7 @@ import type { AppConfig } from "../src/config.js";
 import { BASE_SEPOLIA_USDC } from "../src/payment.js";
 import { UpstreamError, type UsgsClient } from "../src/usgs.js";
 import type { UsgsFeature } from "../src/earthquakes.js";
+import type { VerificationClient } from "../src/verification.js";
 
 const config: AppConfig = {
   payTo: "0x1111111111111111111111111111111111111111",
@@ -193,5 +194,50 @@ describe("QuakeProof HTTP API", () => {
     expect(response.status).toBe(200);
     expect(response.body.risk).toMatchObject({ score: 98, level: "severe" });
     expect(response.body.risk.factors).toContain("USGS tsunami flag is set");
+  });
+
+  it("uses a fresh Chainlink Functions record for event risk when configured", async () => {
+    const verificationClient: VerificationClient = {
+      getLatest: async eventId => ({
+        requestId: `0x${"11".repeat(32)}`,
+        responseHash: `0x${"22".repeat(32)}`,
+        verifiedAt: Date.parse("2026-09-17T00:00:00Z") / 1000,
+        contractAddress: "0x2222222222222222222222222222222222222222",
+        payload: JSON.stringify({
+          v: 1,
+          id: eventId,
+          m: 6.2,
+          lo: 120.5,
+          la: 18.2,
+          d: 15,
+          t: Date.parse("2026-09-16T10:00:00Z"),
+          u: Date.parse("2026-09-16T10:05:00Z"),
+          ts: 1,
+          a: "yellow",
+          s: 650
+        })
+      })
+    };
+    const app = createApp(config, {
+      paymentGuard: paymentGuard([]),
+      verificationClient,
+      usgsClient: async () => {
+        throw new Error("direct USGS must not be called");
+      },
+      now: () => new Date("2026-09-17T00:05:00Z")
+    });
+
+    const response = await request(app)
+      .get("/v1/earthquakes/us7000test/risk")
+      .set("x-test-payment", "valid");
+
+    expect(response.status).toBe(200);
+    expect(response.body.source).toContain("Chainlink Functions");
+    expect(response.body.verification).toMatchObject({
+      provider: "Chainlink Functions",
+      network: "eip155:84532",
+      contract: "0x2222222222222222222222222222222222222222"
+    });
+    expect(response.body.risk).toMatchObject({ score: 98, level: "severe" });
   });
 });

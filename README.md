@@ -20,8 +20,10 @@ deterministic risk screen from magnitude, depth, tsunami, and PAGER indicators.
 - Publishes Bazaar request schemas so compatible agents can discover each paid
   endpoint directly from its `402` challenge.
 
-Chainlink Functions integration is the next hackathon increment. It is not yet
-claimed as implemented in this revision.
+The event-level risk route can read a fresh USGS record produced by Chainlink
+Functions on Base Sepolia. The Functions source, consumer contract, request
+client, and local tests live in this repository; live deployment still requires
+a funded Functions subscription and a deployed consumer address.
 
 > Risk scores are informational screening only. Always follow official
 > emergency-management guidance.
@@ -56,8 +58,8 @@ after deployment.
 
 ## Local development
 
-Requirements: Node.js 22+ and an EVM receiver address. The server never needs a
-private key.
+Requirements: Node.js 22+, Foundry, and an EVM receiver address. The API server
+never needs a private key.
 
 ```bash
 npm ci
@@ -75,6 +77,47 @@ Verification:
 npm run check
 npm run build
 ```
+
+`npm run check` includes both the TypeScript suite and the Solidity consumer
+tests.
+
+## Chainlink Functions verification
+
+[`chainlink/source/verify-earthquake.js`](chainlink/source/verify-earthquake.js)
+is executed by the Functions DON. It accepts one USGS event ID, requests that
+event from the public catalog, validates the response, and returns a compact,
+deterministic payload.
+
+[`contracts/src/QuakeProofFunctionsConsumer.sol`](contracts/src/QuakeProofFunctionsConsumer.sol)
+associates the request with the event ID and stores the successful payload,
+request ID, response hash, and verification time. Failed requests never replace
+the last valid record. The expected Functions source hash is fixed at deployment,
+so the owner cannot substitute different JavaScript for later requests.
+
+Base Sepolia configuration used by the contract:
+
+| Setting | Value |
+|---|---|
+| Functions Router | `0xf9B8fc078197181C841c296C876945aaa425B278` |
+| DON ID | `fun-base-sepolia-1` |
+
+Deploy the consumer and request one event with a dedicated testnet wallet:
+
+```bash
+export CHAINLINK_RPC_URL=https://your-base-sepolia-rpc.example
+export CHAINLINK_OWNER_PRIVATE_KEY=0x...
+npm run build:contracts
+npm run chainlink:deploy
+
+# Add the printed consumer address to the Functions subscription, then:
+export CHAINLINK_CONSUMER_ADDRESS=0x...
+export CHAINLINK_SUBSCRIPTION_ID=...
+export USGS_EVENT_ID=us7000example
+npm run chainlink:request
+```
+
+Never reuse a mainnet wallet. The request key is needed only by the one-off
+client and must not be configured on the API server.
 
 ### Paid Base Sepolia smoke test
 
@@ -116,7 +159,7 @@ The command writes a gitignored `facilitator-diagnostic.json`. A passing result
 confirms configuration and advertised network support; it deliberately reports
 settlement compatibility as `not_tested`. Set `QUAKEPROOF_BASE_URL` before
 running it. See [`docs/FACILITATOR_COMPATIBILITY.md`](docs/FACILITATOR_COMPATIBILITY.md)
-for safe sharing rules and the archived Kite baseline result.
+for operational checks and safe sharing rules.
 
 ## Configuration
 
@@ -134,6 +177,9 @@ for safe sharing rules and the archived Kite baseline result.
 | `FACILITATOR_URL` | no | `https://x402.org/facilitator` | x402 facilitator origin |
 | `UPSTREAM_URL` | no | USGS event API | Fixed HTTPS upstream origin |
 | `UPSTREAM_TIMEOUT_MS` | no | `8000` | Abort slow upstream calls |
+| `CHAINLINK_RPC_URL` | no | — | Base Sepolia HTTPS RPC; set together with the consumer address |
+| `CHAINLINK_CONSUMER_ADDRESS` | no | — | Deployed Functions consumer; enables verified risk data |
+| `CHAINLINK_MAX_AGE_SECONDS` | no | `86400` | Maximum accepted age of an onchain verification |
 
 ## Deploy
 
@@ -173,14 +219,9 @@ EXPECTED_PAY_TO=0xYourReceiver \
 npm run verify:deployment
 ```
 
-Start on Base Sepolia (`eip155:84532`, USDC). After deployment:
-
-1. Confirm `pay_to` in `service.yaml` matches the dashboard-connected service wallet.
-2. Add the HTTPS `base_url` and set `status: testnet`.
-3. Confirm every example returns 2xx after payment.
-4. Save the 402 response, paid response, transaction hash, CI link, and schema
-   validation output in [`docs/SUBMISSION_EVIDENCE.md`](docs/SUBMISSION_EVIDENCE.md).
-5. Move to Base mainnet only after testnet evidence is complete.
+Start on Base Sepolia (`eip155:84532`, USDC). Confirm the receiver, unsigned
+payment challenge, paid response, and settlement transaction before considering
+a Base mainnet deployment.
 
 ## Data source and attribution
 

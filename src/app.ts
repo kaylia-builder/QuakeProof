@@ -18,13 +18,20 @@ import {
   declareDiscoveryExtension
 } from "@x402/extensions/bazaar";
 import { loadConfig, type AppConfig } from "./config.js";
-import { assessRisk, normalizeFeature } from "./earthquakes.js";
+import { assessRisk, normalizeFeature, type UsgsFeature } from "./earthquakes.js";
 import { assetMoneyParser } from "./payment.js";
 import { createUsgsClient, UpstreamError, type UsgsClient } from "./usgs.js";
+import {
+  createVerificationClient,
+  verifiedPayloadToFeature,
+  VerificationError,
+  type VerificationClient
+} from "./verification.js";
 
 export interface AppDependencies {
   paymentGuard?: RequestHandler;
   usgsClient?: UsgsClient;
+  verificationClient?: VerificationClient | null;
   now?: () => Date;
 }
 
@@ -56,7 +63,7 @@ function paidRoute(
     description,
     mimeType: "application/json",
     serviceName: "quakeproof",
-    tags: serviceTags,
+    tags: config.chainlink ? [...serviceTags, "chainlink-functions"] : serviceTags,
     extensions
   };
 }
@@ -198,6 +205,11 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
   const app = express();
   const queryUsgs = dependencies.usgsClient ?? createUsgsClient(config.upstreamUrl, config.upstreamTimeoutMs);
   const now = dependencies.now ?? (() => new Date());
+  const verificationClient = dependencies.verificationClient === undefined
+    ? config.chainlink
+      ? createVerificationClient(config.chainlink.rpcUrl, config.chainlink.consumerAddress)
+      : undefined
+    : dependencies.verificationClient ?? undefined;
 
   app.disable("x-powered-by");
   // Vercel and Render terminate TLS at their reverse proxy. Trust the nearest
@@ -215,6 +227,7 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
       price: config.price,
       health: "/healthz",
       discovery: "x402 Bazaar metadata is included in each 402 challenge",
+      riskData: verificationClient ? "chainlink-functions" : "direct-usgs",
       paidEndpoints: [
         "/v1/earthquakes/recent",
         "/v1/earthquakes/nearby",
@@ -230,7 +243,8 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
       network: config.payment.network,
       asset: config.payment.assetSymbol,
       price: config.price,
-      upstream: config.upstreamUrl.origin
+      upstream: config.upstreamUrl.origin,
+      riskData: verificationClient ? "chainlink-functions" : "direct-usgs"
     });
   });
 
@@ -295,11 +309,37 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
       if (!/^[A-Za-z0-9_-]{3,40}$/.test(eventId)) {
         throw new RequestError("eventId contains unsupported characters");
       }
-      const data = await queryUsgs({ eventid: eventId });
-      const feature = data.features[0];
-      if (!feature) throw new RequestError(`earthquake ${eventId} was not found`, 404);
+      let feature: UsgsFeature;
+      let verification;
+      if (verificationClient) {
+        const record = await verificationClient.getLatest(eventId);
+        if (!record) {
+          throw new RequestError(`earthquake ${eventId} has not been verified onchain`, 404);
+        }
+        const maxAgeSeconds = config.chainlink?.maxAgeSeconds ?? 86_400;
+        const ageSeconds = Math.floor(now().getTime() / 1000) - record.verifiedAt;
+        if (ageSeconds < 0 || ageSeconds > maxAgeSeconds) {
+          throw new RequestError(`onchain verification for ${eventId} is stale`, 409);
+        }
+        feature = verifiedPayloadToFeature(record.payload, eventId);
+        verification = {
+          provider: "Chainlink Functions",
+          network: "eip155:84532",
+          contract: record.contractAddress,
+          requestId: record.requestId,
+          responseHash: record.responseHash,
+          verifiedAt: new Date(record.verifiedAt * 1000).toISOString()
+        };
+      } else {
+        const data = await queryUsgs({ eventid: eventId });
+        feature = data.features[0];
+        if (!feature) throw new RequestError(`earthquake ${eventId} was not found`, 404);
+      }
       res.json({
-        source: "USGS Earthquake Catalog",
+        source: verification
+          ? "USGS Earthquake Catalog via Chainlink Functions"
+          : "USGS Earthquake Catalog",
+        verification,
         earthquake: normalizeFeature(feature),
         risk: assessRisk(feature)
       });
@@ -315,6 +355,10 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
     }
     if (error instanceof UpstreamError) {
       res.status(502).json({ error: "upstream_failure", detail: error.message });
+      return;
+    }
+    if (error instanceof VerificationError) {
+      res.status(502).json({ error: "verification_failure", detail: error.message });
       return;
     }
     console.error(error);

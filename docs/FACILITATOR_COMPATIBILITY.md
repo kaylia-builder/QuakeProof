@@ -26,9 +26,5 @@ A passing read-only check proves configuration alignment only. Successful
 asset-specific settlement requires `npm run testnet:paid-smoke` and a resulting
 transaction hash.
 
-The previous Kite/PYUSD result is preserved in
-[`BASELINE_KITE_EVIDENCE.md`](BASELINE_KITE_EVIDENCE.md) and in the
-`hackathon-baseline` Git tag.
-
 Never publish a payer private key, seed phrase, complete payment signature,
 bearer token, or wallet credential with a diagnostic report.
