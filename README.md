@@ -1,8 +1,8 @@
-# QuakePay x402
+# QuakeProof
 
-[![CI](https://github.com/kaylia-builder/quakepay-x402/actions/workflows/ci.yml/badge.svg)](https://github.com/kaylia-builder/quakepay-x402/actions/workflows/ci.yml)
+[![CI](https://github.com/kaylia-builder/QuakeProof/actions/workflows/ci.yml/badge.svg)](https://github.com/kaylia-builder/QuakeProof/actions/workflows/ci.yml)
 
-QuakePay turns the live [USGS Earthquake Catalog](https://earthquake.usgs.gov/fdsnws/event/1/)
+QuakeProof turns the live [USGS Earthquake Catalog](https://earthquake.usgs.gov/fdsnws/event/1/)
 into concise, agent-ready earthquake intelligence paid per request with x402 on
 the Kite chain. It is based on Kite's official TypeScript/Express wrapper and
 keeps the required lifecycle: **verify payment → call USGS → settle only after a
@@ -45,7 +45,7 @@ curl -i "http://localhost:8080/v1/earthquakes/recent?hours=24&minMagnitude=4.5&l
 It must return `HTTP/1.1 402 Payment Required` and a `PAYMENT-REQUIRED` header.
 
 Each challenge also includes the standard x402 **Bazaar discovery extension**:
-machine-readable query/path schemas, example responses, the `quakepay-x402`
+machine-readable query/path schemas, example responses, the `quakeproof`
 service name, and Kite-oriented capability tags. This lets compatible Kite
 agents and facilitators understand how to call all three endpoints directly
 from the unpaid `402` response.
@@ -146,8 +146,8 @@ Build the included container and configure environment variables on any host
 that provides a public HTTPS origin:
 
 ```bash
-docker build -t quakepay-x402 .
-docker run --rm -p 8080:8080 --env-file .env quakepay-x402
+docker build -t quakeproof .
+docker run --rm -p 8080:8080 --env-file .env quakeproof
 ```
 
 The simplest deployment path is **Vercel Hobby**. Import this GitHub repository
@@ -194,7 +194,7 @@ The gated development sequence and mainnet exit criteria are tracked in
 
 Earthquake data is retrieved from the USGS Earthquake Catalog. Review the
 [USGS copyrights and credits policy](https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits)
-and retain source attribution in derived responses. QuakePay is not affiliated
+and retain source attribution in derived responses. QuakeProof is not affiliated
 with or endorsed by USGS.
 
 ## License and upstream attribution
@@ -202,6 +202,6 @@ with or endorsed by USGS.
 Apache-2.0. The Kite chain configuration and x402 server setup are derived from
 the Apache-2.0-licensed
 [`gokite-ai/kite-x402-services`](https://github.com/gokite-ai/kite-x402-services)
-TypeScript/Express template. See [`NOTICE`](NOTICE) for details. QuakePay's USGS
+TypeScript/Express template. See [`NOTICE`](NOTICE) for details. QuakeProof's USGS
 query, normalization, risk-screening, validation, testing, deployment, and
 evidence code are original additions in this repository.

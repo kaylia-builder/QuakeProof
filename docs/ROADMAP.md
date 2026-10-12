@@ -1,4 +1,4 @@
-# QuakePay development roadmap
+# QuakeProof development roadmap
 
 Progress is gate-based: a phase is complete only when its evidence exists. A
 working configuration or unsigned `402` challenge is not treated as proof of

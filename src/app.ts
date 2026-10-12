@@ -1,6 +1,6 @@
 /*
  * x402 server registration follows the Apache-2.0-licensed Kite TypeScript
- * template. QuakePay routing, validation, USGS integration, and responses are
+ * template. QuakeProof routing, validation, USGS integration, and responses are
  * project-specific modifications.
  */
 import express, {
@@ -55,7 +55,7 @@ function paidRoute(
     },
     description,
     mimeType: "application/json",
-    serviceName: "quakepay-x402",
+    serviceName: "quakeproof",
     tags: serviceTags,
     extensions
   };
@@ -208,7 +208,7 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
   app.get("/", (_req, res) => {
     res.json({
       ok: true,
-      service: "quakepay-x402",
+      service: "quakeproof",
       description: config.serviceDescription,
       network: config.chain.network,
       asset: config.chain.assetSymbol,
@@ -226,7 +226,7 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
   app.get("/healthz", (_req, res) => {
     res.json({
       ok: true,
-      service: "quakepay-x402",
+      service: "quakeproof",
       network: config.chain.network,
       asset: config.chain.assetSymbol,
       price: config.price,

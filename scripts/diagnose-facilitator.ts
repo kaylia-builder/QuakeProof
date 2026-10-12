@@ -39,7 +39,10 @@ async function request(url: string): Promise<{
 }
 
 async function main() {
-  const service = httpsUrl(process.env.QUAKEPAY_BASE_URL ?? DEFAULT_BASE_URL, "QUAKEPAY_BASE_URL");
+  const service = httpsUrl(
+    process.env.QUAKEPROOF_BASE_URL ?? process.env.QUAKEPAY_BASE_URL ?? DEFAULT_BASE_URL,
+    "QUAKEPROOF_BASE_URL"
+  );
   const facilitator = httpsUrl(process.env.FACILITATOR_URL ?? FACILITATOR_URL, "FACILITATOR_URL");
   const challengeUrl = `${service}/v1/earthquakes/recent?hours=24&minMagnitude=4.5&limit=3`;
 

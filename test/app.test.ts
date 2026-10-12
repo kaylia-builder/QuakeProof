@@ -55,7 +55,7 @@ function paymentGuard(events: string[]): RequestHandler {
   };
 }
 
-describe("QuakePay HTTP API", () => {
+describe("QuakeProof HTTP API", () => {
   it("exports a Vercel-compatible request handler", () => {
     expect(typeof handleRequest).toBe("function");
   });
@@ -66,7 +66,7 @@ describe("QuakePay HTTP API", () => {
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       ok: true,
-      service: "quakepay-x402",
+      service: "quakeproof",
       network: "eip155:2368",
       discovery: "x402 Bazaar metadata is included in each 402 challenge",
       paidEndpoints: [
@@ -90,7 +90,7 @@ describe("QuakePay HTTP API", () => {
     ]);
 
     for (const route of Object.values(routes)) {
-      expect(route.serviceName).toBe("quakepay-x402");
+      expect(route.serviceName).toBe("quakeproof");
       expect(route.tags).toContain("kite-ai");
       const bazaar = route.extensions?.bazaar;
       expect(bazaar).toBeDefined();

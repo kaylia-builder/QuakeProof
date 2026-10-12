@@ -1,9 +1,9 @@
 {
-  "name": "quakepay-x402",
+  "name": "quakeproof",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Agent-ready earthquake intelligence paid per request with x402 on Kite",
+  "description": "Verifiable earthquake intelligence for autonomous agents",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=22"

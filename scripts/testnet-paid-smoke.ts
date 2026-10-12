@@ -39,10 +39,14 @@ function requiredPrivateKey(): `0x${string}` {
 }
 
 function baseUrl(): string {
-  const value = (process.env.QUAKEPAY_BASE_URL ?? DEFAULT_BASE_URL).replace(/\/$/, "");
+  const value = (
+    process.env.QUAKEPROOF_BASE_URL ??
+    process.env.QUAKEPAY_BASE_URL ??
+    DEFAULT_BASE_URL
+  ).replace(/\/$/, "");
   const url = new URL(value);
   if (url.protocol !== "https:") {
-    throw new Error("QUAKEPAY_BASE_URL must use HTTPS");
+    throw new Error("QUAKEPROOF_BASE_URL must use HTTPS");
   }
   return url.toString().replace(/\/$/, "");
 }

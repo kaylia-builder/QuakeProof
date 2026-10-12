@@ -1,6 +1,6 @@
 # Facilitator compatibility diagnostics
 
-QuakePay includes a read-only diagnostic command for separating service
+QuakeProof includes a read-only diagnostic command for separating service
 configuration problems from facilitator capability and settlement problems.
 
 ```bash
@@ -9,7 +9,7 @@ npm run diagnose:facilitator
 
 The command makes three unsigned GET requests:
 
-1. QuakePay `/healthz`
+1. QuakeProof `/healthz`
 2. One paid endpoint without a payment, to inspect its `402` challenge
 3. The configured facilitator `/supported` endpoint
 
@@ -17,7 +17,7 @@ It does not load a private key, create a payment signature, call `/verify` or
 `/settle`, or transfer tokens. The generated `facilitator-diagnostic.json` is
 gitignored and redacts fields whose names indicate signing material or secrets.
 
-Set `QUAKEPAY_BASE_URL`, `FACILITATOR_URL`, or `DIAGNOSTIC_OUT` to diagnose a
+Set `QUAKEPROOF_BASE_URL`, `FACILITATOR_URL`, or `DIAGNOSTIC_OUT` to diagnose a
 different HTTPS deployment, facilitator, or output path.
 
 ## Latest read-only result
@@ -45,11 +45,11 @@ settlement transaction hash was produced.
 The Kite gasless PYUSD path examined during the same investigation required an
 authorization `validAfter` later than the latest block time, while the standard
 x402 EVM client generated `validAfter=0`. This is recorded as a compatibility
-finding, not as proof that QuakePay completed a paid request.
+finding, not as proof that QuakeProof completed a paid request.
 
 ## Interpretation
 
-- A failing health or challenge check points to the QuakePay deployment.
+- A failing health or challenge check points to the QuakeProof deployment.
 - A missing Kite capability points to facilitator routing or configuration.
 - Passing all read-only checks means only that configuration and advertised
   capabilities align.

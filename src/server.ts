@@ -16,7 +16,7 @@ export default app;
 if (!process.env.VERCEL) {
   app.listen(port, () => {
     console.log(
-      `quakepay-x402 listening on :${port} ` +
+      `quakeproof listening on :${port} ` +
         `(network ${config.chain.network}, ${config.price} per call to ${config.payTo})`
     );
   });

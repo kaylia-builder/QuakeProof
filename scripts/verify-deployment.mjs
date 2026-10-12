@@ -43,7 +43,7 @@ const expected = {
 };
 
 const rawBaseUrl = (process.env.BASE_URL ?? "").trim().replace(/\/$/, "");
-if (!rawBaseUrl) throw new Error("BASE_URL is required, for example https://quakepay-x402.onrender.com");
+if (!rawBaseUrl) throw new Error("BASE_URL is required, for example https://quakeproof.onrender.com");
 const baseUrl = new URL(rawBaseUrl);
 if (baseUrl.protocol !== "https:" || baseUrl.pathname !== "/") {
   throw new Error("BASE_URL must be an HTTPS origin without a path");

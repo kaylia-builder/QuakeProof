@@ -27,7 +27,7 @@ export function createUsgsClient(baseUrl: URL, timeoutMs: number): UsgsClient {
         signal: AbortSignal.timeout(timeoutMs),
         headers: {
           accept: "application/geo+json, application/json",
-          "user-agent": "quakepay-x402/0.1 (+https://github.com/kaylia-builder/quakepay-x402)"
+          "user-agent": "quakeproof/0.1 (+https://github.com/kaylia-builder/QuakeProof)"
         }
       });
     } catch (error) {

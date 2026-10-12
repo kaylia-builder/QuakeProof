@@ -5,7 +5,7 @@ keys, seed phrases, login codes, bearer tokens, or complete payment signatures.
 
 ## Identity and revision
 
-- Repository: https://github.com/kaylia-builder/quakepay-x402
+- Repository: https://github.com/kaylia-builder/QuakeProof
 - Contribution commits: use the current weekly commit links submitted to the
   KiteAI bounty dashboard; this file no longer pins only the initial revision.
 - Maintainer: `kaylia-builder`
@@ -21,7 +21,7 @@ keys, seed phrases, login codes, bearer tokens, or complete payment signatures.
 
 ## Automated verification
 
-- CI runs: https://github.com/kaylia-builder/quakepay-x402/actions
+- CI runs: https://github.com/kaylia-builder/QuakeProof/actions
 - `npm run check`: passed (18 tests)
 - Manifest validation: passed against the official Kite x402 schema
 - All paid routes advertise valid x402 Bazaar discovery metadata with request

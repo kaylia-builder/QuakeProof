@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: quakepay-x402
+    name: quakeproof
     runtime: docker
     plan: free
     healthCheckPath: /healthz

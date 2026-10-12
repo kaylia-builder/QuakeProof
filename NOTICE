@@ -1,11 +1,11 @@
-QuakePay x402
+QuakeProof
 Copyright 2026 kaylia-builder
 
 This product includes portions derived from Kite x402 Services:
 https://github.com/gokite-ai/kite-x402-services
 
 The upstream project is licensed under the Apache License, Version 2.0.
-QuakePay modifies the TypeScript/Express template by adding application
+QuakeProof modifies the TypeScript/Express template by adding application
 configuration, fixed USGS routes, validation, normalization, risk screening,
 tests, deployment automation, and evidence tooling.
 

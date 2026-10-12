@@ -1,6 +1,6 @@
 schema: 1
-name: quakepay-x402
-display_name: QuakePay
+name: quakeproof
+display_name: QuakeProof
 description: >-
   Agent-ready recent, nearby, and event-level earthquake intelligence from the
   USGS catalog, normalized and screened for risk, paid per request over x402.

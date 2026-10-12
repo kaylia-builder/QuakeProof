@@ -1,6 +1,6 @@
 /*
  * Derived from gokite-ai/kite-x402-services/templates/typescript-express/src/kite.ts
- * under Apache-2.0. Modified for QuakePay's application structure and tests.
+ * under Apache-2.0. Modified for QuakeProof's application structure and tests.
  */
 import type { AssetAmount, MoneyParser, Network } from "@x402/core/types";
 
