@@ -63,7 +63,7 @@ function paidRoute(
     description,
     mimeType: "application/json",
     serviceName: "quakeproof",
-    tags: config.chainlink ? [...serviceTags, "chainlink-functions"] : serviceTags,
+    tags: config.chainlink ? [...serviceTags, "chainlink-cre"] : serviceTags,
     extensions
   };
 }
@@ -227,7 +227,7 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
       price: config.price,
       health: "/healthz",
       discovery: "x402 Bazaar metadata is included in each 402 challenge",
-      riskData: verificationClient ? "chainlink-functions" : "direct-usgs",
+      riskData: verificationClient ? "chainlink-cre" : "direct-usgs",
       paidEndpoints: [
         "/v1/earthquakes/recent",
         "/v1/earthquakes/nearby",
@@ -244,7 +244,7 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
       asset: config.payment.assetSymbol,
       price: config.price,
       upstream: config.upstreamUrl.origin,
-      riskData: verificationClient ? "chainlink-functions" : "direct-usgs"
+      riskData: verificationClient ? "chainlink-cre" : "direct-usgs"
     });
   });
 
@@ -323,10 +323,10 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
         }
         feature = verifiedPayloadToFeature(record.payload, eventId);
         verification = {
-          provider: "Chainlink Functions",
+          provider: "Chainlink CRE",
           network: "eip155:84532",
           contract: record.contractAddress,
-          requestId: record.requestId,
+          reportHash: record.reportHash,
           responseHash: record.responseHash,
           verifiedAt: new Date(record.verifiedAt * 1000).toISOString()
         };
@@ -337,7 +337,7 @@ export function createApp(config: AppConfig, dependencies: AppDependencies = {})
       }
       res.json({
         source: verification
-          ? "USGS Earthquake Catalog via Chainlink Functions"
+          ? "USGS Earthquake Catalog via Chainlink CRE"
           : "USGS Earthquake Catalog",
         verification,
         earthquake: normalizeFeature(feature),

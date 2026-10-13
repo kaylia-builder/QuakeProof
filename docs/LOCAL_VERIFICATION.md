@@ -15,8 +15,8 @@ The automated suite covers:
 - `verify → upstream → settle` ordering
 - no settlement after upstream failure
 - validation, normalization, and deterministic risk scoring
-- deterministic Chainlink Functions source output
-- successful and failed Functions consumer fulfillment
+- deterministic CRE workflow payload generation
+- CRE receiver authorization, chain binding, freshness, and replay protection
 - parsing fresh onchain records into the risk endpoint
 
 After deploying, verify unsigned challenges:

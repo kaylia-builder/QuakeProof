@@ -9,6 +9,7 @@ testnet-paid-evidence.json
 facilitator-diagnostic.json
 contracts/cache/
 contracts/out/
+cre/**/.cre_build_tmp.*
 .DS_Store
 
 .kite-passport/
