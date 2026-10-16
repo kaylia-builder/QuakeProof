@@ -20,13 +20,29 @@ deterministic risk screen from magnitude, depth, tsunami, and PAGER indicators.
 - Publishes Bazaar request schemas so compatible agents can discover each paid
   endpoint directly from its `402` challenge.
 
-The event-level risk route can read a fresh USGS record produced by Chainlink
-Functions on Base Sepolia. The Functions source, consumer contract, request
-client, and local tests live in this repository; live deployment still requires
-a funded Functions subscription and a deployed consumer address.
+The event-level risk route can read a fresh USGS record verified by a Chainlink
+CRE workflow on Base Sepolia. CRE nodes fetch the event independently, require
+byte-identical consensus on the canonical payload, sign a report, and deliver it
+through the Keystone Forwarder to the onchain receiver. The API server only
+reads that record and never holds a blockchain private key.
 
 > Risk scores are informational screening only. Always follow official
 > emergency-management guidance.
+
+## Current iteration
+
+This version builds on the repository state preserved by the public
+[`hackathon-baseline`](https://github.com/kaylia-builder/QuakeProof/tree/hackathon-baseline)
+tag. Since that baseline, the implementation has:
+
+- evolved from the Kite-focused QuakePay prototype into QuakeProof on Base
+  Sepolia, using USDC and configurable EVM payment metadata;
+- added a Chainlink CRE workflow that reaches identical consensus on canonical
+  USGS event data and delivers a DON-signed report onchain;
+- added a secured receiver contract with Forwarder, workflow-author, optional
+  workflow-ID, chain, freshness, and replay validation; and
+- expanded automated verification to 28 application tests and 6 Solidity tests,
+  plus CI, deployment checks, and restricted paid-smoke tooling.
 
 ## Endpoints
 
@@ -58,8 +74,9 @@ after deployment.
 
 ## Local development
 
-Requirements: Node.js 22+, Foundry, and an EVM receiver address. The API server
-never needs a private key.
+Requirements: Node.js 22+, Foundry, and an EVM payment receiver address. The API
+server never needs a private key. The CRE CLI is needed only to simulate or
+deploy the verification workflow.
 
 ```bash
 npm ci
@@ -81,43 +98,73 @@ npm run build
 `npm run check` includes both the TypeScript suite and the Solidity consumer
 tests.
 
-## Chainlink Functions verification
+## Chainlink CRE verification
 
-[`chainlink/source/verify-earthquake.js`](chainlink/source/verify-earthquake.js)
-is executed by the Functions DON. It accepts one USGS event ID, requests that
-event from the public catalog, validates the response, and returns a compact,
-deterministic payload.
+[`cre/quakeproof-verifier/workflow.ts`](cre/quakeproof-verifier/workflow.ts)
+defines one HTTP-triggered CRE workflow. It validates an event ID, asks the CRE
+HTTP capability to fetch the USGS response on multiple nodes, applies identical
+consensus to a compact canonical payload, and submits a DON-signed report to
+Base Sepolia.
 
-[`contracts/src/QuakeProofFunctionsConsumer.sol`](contracts/src/QuakeProofFunctionsConsumer.sol)
-associates the request with the event ID and stores the successful payload,
-request ID, response hash, and verification time. Failed requests never replace
-the last valid record. The expected Functions source hash is fixed at deployment,
-so the owner cannot substitute different JavaScript for later requests.
+[`contracts/src/QuakeProofReceiver.sol`](contracts/src/QuakeProofReceiver.sol)
+accepts reports only from its configured Keystone Forwarder and workflow owner.
+It can additionally be locked to one workflow ID, verifies the Base Sepolia
+chain selector, rejects stale or replayed reports, and stores the report hash,
+payload hash, CRE verification time, and payload.
 
-Base Sepolia configuration used by the contract:
+The workflow is pinned to `@chainlink/cre-sdk` `1.23.0`, which requires Bun
+`1.2.21` or newer. It has been compiled with CRE CLI `v1.38.0`; check
+`cre version` and update before simulation. Base Sepolia's CRE chain name is
+`ethereum-testnet-sepolia-base-1` and its chain selector is
+`10344971235874465080`.
 
-| Setting | Value |
-|---|---|
-| Functions Router | `0xf9B8fc078197181C841c296C876945aaa425B278` |
-| DON ID | `fun-base-sepolia-1` |
+### Local validation
 
-Deploy the consumer and request one event with a dedicated testnet wallet:
+```bash
+npm ci
+npm run cre:typecheck
+npm run test:contracts
+```
+
+### Receiver and workflow setup
+
+1. Install the [CRE CLI](https://docs.chain.link/cre/getting-started/cli-installation/macos-linux),
+   create a CRE account, and run `cre login`.
+2. Run `cre workflow supported-chains --output json`. Copy the Base Sepolia
+   Mock Forwarder for a broadcast simulation, or the production
+   KeystoneForwarder for a deployed workflow. Do not copy an address from an
+   old tutorial because enabled chains and addresses are tenant-aware.
+3. Deploy the matching receiver with a dedicated testnet wallet. The workflow
+   author must be the owner address the CRE CLI uses for this target.
 
 ```bash
 export CHAINLINK_RPC_URL=https://your-base-sepolia-rpc.example
 export CHAINLINK_OWNER_PRIVATE_KEY=0x...
+export CRE_FORWARDER_ADDRESS=0x...
+export CRE_WORKFLOW_AUTHOR_ADDRESS=0x...
 npm run build:contracts
-npm run chainlink:deploy
-
-# Add the printed consumer address to the Functions subscription, then:
-export CHAINLINK_CONSUMER_ADDRESS=0x...
-export CHAINLINK_SUBSCRIPTION_ID=...
-export USGS_EVENT_ID=us7000example
-npm run chainlink:request
+npm run cre:deploy-receiver
 ```
 
-Never reuse a mainnet wallet. The request key is needed only by the one-off
-client and must not be configured on the API server.
+4. Replace `REPLACE_WITH_DEPLOYED_RECEIVER` in the chosen CRE config. Staging
+   deliberately leaves the HTTP trigger authorization empty for simulation;
+   production must contain the authorized EVM signer address.
+5. From `cre/quakeproof-verifier`, simulate one event. Omit `--broadcast` for a
+   dry run; add it only when the receiver uses the Mock Forwarder and
+   `CRE_ETH_PRIVATE_KEY` holds Base Sepolia ETH.
+
+```bash
+cre workflow simulate . \
+  --non-interactive \
+  --trigger-index 0 \
+  --http-payload '{"eventId":"us7000example"}' \
+  --target staging-settings
+```
+
+Production workflow deployment requires Chainlink approval (`cre account
+access`). After deployment, set the receiver's `expectedWorkflowId` to the ID
+printed by the CLI, and trigger the workflow through CRE's authenticated HTTP
+gateway. Never configure deployment or trigger private keys on the API server.
 
 ### Paid Base Sepolia smoke test
 
@@ -178,7 +225,7 @@ for operational checks and safe sharing rules.
 | `UPSTREAM_URL` | no | USGS event API | Fixed HTTPS upstream origin |
 | `UPSTREAM_TIMEOUT_MS` | no | `8000` | Abort slow upstream calls |
 | `CHAINLINK_RPC_URL` | no | — | Base Sepolia HTTPS RPC; set together with the consumer address |
-| `CHAINLINK_CONSUMER_ADDRESS` | no | — | Deployed Functions consumer; enables verified risk data |
+| `CHAINLINK_CONSUMER_ADDRESS` | no | — | Deployed CRE receiver; enables verified risk data |
 | `CHAINLINK_MAX_AGE_SECONDS` | no | `86400` | Maximum accepted age of an onchain verification |
 
 ## Deploy

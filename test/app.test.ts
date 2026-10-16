@@ -196,10 +196,10 @@ describe("QuakeProof HTTP API", () => {
     expect(response.body.risk.factors).toContain("USGS tsunami flag is set");
   });
 
-  it("uses a fresh Chainlink Functions record for event risk when configured", async () => {
+  it("uses a fresh Chainlink CRE record for event risk when configured", async () => {
     const verificationClient: VerificationClient = {
       getLatest: async eventId => ({
-        requestId: `0x${"11".repeat(32)}`,
+        reportHash: `0x${"11".repeat(32)}`,
         responseHash: `0x${"22".repeat(32)}`,
         verifiedAt: Date.parse("2026-09-17T00:00:00Z") / 1000,
         contractAddress: "0x2222222222222222222222222222222222222222",
@@ -232,9 +232,9 @@ describe("QuakeProof HTTP API", () => {
       .set("x-test-payment", "valid");
 
     expect(response.status).toBe(200);
-    expect(response.body.source).toContain("Chainlink Functions");
+    expect(response.body.source).toContain("Chainlink CRE");
     expect(response.body.verification).toMatchObject({
-      provider: "Chainlink Functions",
+      provider: "Chainlink CRE",
       network: "eip155:84532",
       contract: "0x2222222222222222222222222222222222222222"
     });

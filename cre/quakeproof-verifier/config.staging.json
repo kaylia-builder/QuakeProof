@@ -1,0 +1,7 @@
+{
+  "chainSelectorName": "ethereum-testnet-sepolia-base-1",
+  "consumerAddress": "REPLACE_WITH_DEPLOYED_RECEIVER",
+  "gasLimit": "750000",
+  "authorizedTriggerAddress": "",
+  "usgsQueryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query"
+}

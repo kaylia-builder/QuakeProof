@@ -15,7 +15,7 @@ const consumerAbi = [{
   stateMutability: "view",
   inputs: [{ name: "eventId", type: "string" }],
   outputs: [
-    { name: "requestId", type: "bytes32" },
+    { name: "reportHash", type: "bytes32" },
     { name: "responseHash", type: "bytes32" },
     { name: "verifiedAt", type: "uint64" },
     { name: "payload", type: "string" }
@@ -23,7 +23,7 @@ const consumerAbi = [{
 }] as const;
 
 export interface VerifiedEventRecord {
-  requestId: Hex;
+  reportHash: Hex;
   responseHash: Hex;
   verifiedAt: number;
   payload: string;
@@ -49,25 +49,25 @@ export function createVerificationClient(
   return {
     async getLatest(eventId) {
       try {
-        const [requestId, responseHash, verifiedAt, payload] = await client.readContract({
+        const [reportHash, responseHash, verifiedAt, payload] = await client.readContract({
           address: contractAddress,
           abi: consumerAbi,
           functionName: "getLatest",
           args: [eventId]
         });
-        if (requestId === zeroHash) return null;
+        if (reportHash === zeroHash) return null;
         if (verifiedAt > BigInt(Number.MAX_SAFE_INTEGER)) {
           throw new VerificationError("onchain verification timestamp is out of range");
         }
         return {
-          requestId,
+          reportHash,
           responseHash,
           verifiedAt: Number(verifiedAt),
           payload,
           contractAddress
         };
       } catch (error) {
-        throw new VerificationError(`Chainlink verification read failed: ${String(error)}`);
+        throw new VerificationError(`Chainlink CRE verification read failed: ${String(error)}`);
       }
     }
   };
