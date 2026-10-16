@@ -29,6 +29,21 @@ reads that record and never holds a blockchain private key.
 > Risk scores are informational screening only. Always follow official
 > emergency-management guidance.
 
+## Current iteration
+
+This version builds on the repository state preserved by the public
+[`hackathon-baseline`](https://github.com/kaylia-builder/QuakeProof/tree/hackathon-baseline)
+tag. Since that baseline, the implementation has:
+
+- evolved from the Kite-focused QuakePay prototype into QuakeProof on Base
+  Sepolia, using USDC and configurable EVM payment metadata;
+- added a Chainlink CRE workflow that reaches identical consensus on canonical
+  USGS event data and delivers a DON-signed report onchain;
+- added a secured receiver contract with Forwarder, workflow-author, optional
+  workflow-ID, chain, freshness, and replay validation; and
+- expanded automated verification to 28 application tests and 6 Solidity tests,
+  plus CI, deployment checks, and restricted paid-smoke tooling.
+
 ## Endpoints
 
 `GET /healthz` is free. Every route under `/v1/` costs the configured
